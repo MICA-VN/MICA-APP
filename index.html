@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="assets/images/MICA-Favicon.png">
-    <title>MICA - Hóa học Tương tác</title>
+    <link rel="icon" type="image/png" href="apps/web/public/images/MICA-Favicon.png">
+    <title>MICA</title>
 
     <style>
         * {
@@ -28,7 +28,6 @@
             align-items: center;
             justify-content: center;
             font-family: Arial, Helvetica, sans-serif;
-
             background:
                 radial-gradient(
                     circle at 25% 25%,
@@ -51,21 +50,21 @@
         #chemistry-bg {
             position: absolute;
             inset: 0;
+            z-index: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 0;
         }
 
         .ambient-cyan,
         .ambient-green {
             position: absolute;
+            z-index: 0;
             width: 28rem;
             height: 28rem;
             border-radius: 50%;
             pointer-events: none;
             filter: blur(90px);
-            z-index: 0;
         }
 
         .ambient-cyan {
@@ -80,6 +79,44 @@
             background: rgba(110, 231, 183, 0.14);
         }
 
+        .app-button {
+            position: absolute;
+            left: 50%;
+            bottom: calc(50% + 31vh);
+            z-index: 5;
+            padding: 12px 24px;
+            border: 1px solid rgba(2, 132, 199, 0.2);
+            border-radius: 999px;
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow:
+                0 12px 28px rgba(2, 132, 199, 0.22),
+                0 5px 12px rgba(6, 182, 212, 0.12);
+            cursor: pointer;
+            opacity: 0;
+            transform: translate(-50%, 20px) scale(0.5);
+            pointer-events: none;
+        }
+
+        .app-button.show {
+            animation: appButtonReveal 0.5s cubic-bezier(0.2, 0.75, 0.2, 1) forwards;
+            pointer-events: auto;
+        }
+
+        .app-button:hover {
+            transform: translate(-50%, -3px) scale(1.04);
+            box-shadow:
+                0 16px 34px rgba(2, 132, 199, 0.28),
+                0 7px 16px rgba(6, 182, 212, 0.15);
+        }
+
+        .app-button:active {
+            transform: translate(-50%, 0) scale(0.98);
+        }
+
         .scene {
             position: relative;
             z-index: 2;
@@ -87,6 +124,9 @@
             height: 60vh;
             perspective: 1400px;
             cursor: pointer;
+            animation:
+                float 6s ease-in-out infinite,
+                cardMoveDown 0.5s cubic-bezier(0.2, 0.75, 0.2, 1) 0.5s forwards;
         }
 
         .card {
@@ -125,26 +165,19 @@
         .face {
             position: absolute;
             inset: 0;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             overflow: hidden;
-
             border: 1px solid rgba(165, 243, 252, 0.65);
             border-radius: 18px;
-
             background: rgba(255, 255, 255, 0.76);
-
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-
             box-shadow:
                 0 30px 70px rgba(6, 182, 212, 0.12),
                 0 12px 35px rgba(16, 185, 129, 0.08),
                 inset 0 0 1px rgba(255, 255, 255, 0.95);
-
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
@@ -171,7 +204,6 @@
             position: absolute;
             inset: -50%;
             pointer-events: none;
-
             background:
                 linear-gradient(
                     115deg,
@@ -179,9 +211,32 @@
                     rgba(255, 255, 255, 0.22) 48%,
                     transparent 60%
                 );
-
             transform: translateX(-35%) rotate(8deg);
             animation: shine 7s ease-in-out infinite;
+        }
+
+        @keyframes appButtonReveal {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, 20px) scale(0.5);
+                filter: blur(4px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes cardMoveDown {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(5vh);
+            }
         }
 
         @keyframes shine {
@@ -207,16 +262,18 @@
             }
         }
 
-        .scene {
-            animation: float 6s ease-in-out infinite;
-        }
-
         @media (max-width: 700px) {
             .scene {
                 width: 60vh;
                 height: 60vh;
                 max-width: 88vw;
                 max-height: 88vw;
+            }
+
+            .app-button {
+                bottom: calc(50% + 47vw);
+                padding: 11px 21px;
+                font-size: 14px;
             }
         }
     </style>
@@ -229,12 +286,16 @@
     <div class="ambient-cyan"></div>
     <div class="ambient-green"></div>
 
+    <button class="app-button" id="appButton" type="button">
+        Mở App
+    </button>
+
     <div class="scene" id="cardScene">
         <div class="card">
 
             <div class="face front">
                 <img
-                    src="assets/images/MICA-LOGO&TEXT.png"
+                    src="apps/web/public/images/MICA-LOGO&TEXT.png"
                     alt="MICA"
                 >
                 <div class="shine"></div>
@@ -242,7 +303,7 @@
 
             <div class="face back">
                 <img
-                    src="assets/images/MICA-Logo.png"
+                    src="apps/web/public/images/MICA-Logo.png"
                     alt="MICA Logo"
                 >
                 <div class="shine"></div>
@@ -253,13 +314,18 @@
 
     <script>
         const scene = document.getElementById("cardScene");
+        const appButton = document.getElementById("appButton");
 
         scene.addEventListener("click", () => {
             scene.classList.toggle("flipped");
         });
 
-        document.addEventListener("dragstart", e => {
-            e.preventDefault();
+        appButton.addEventListener("click", () => {
+            window.location.href = "https://mica.page.gd";
+        });
+
+        document.addEventListener("dragstart", event => {
+            event.preventDefault();
         });
 
         const canvas = document.getElementById("chemistry-bg");
@@ -279,17 +345,13 @@
             constructor() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-
                 this.vx = (Math.random() - 0.5) * 0.3;
                 this.vy = (Math.random() - 0.5) * 0.3;
-
                 this.radius = Math.random() * 2 + 0.8;
-
                 this.color =
                     Math.random() > 0.45
                         ? "2, 132, 199"
                         : "13, 148, 136";
-
                 this.alpha = Math.random() * 0.22 + 0.08;
             }
 
@@ -352,6 +414,10 @@
 
         resize();
         animate();
+
+        setTimeout(() => {
+            appButton.classList.add("show");
+        }, 500);
     </script>
 
 </body>
