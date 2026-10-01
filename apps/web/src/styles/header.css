@@ -1,0 +1,221 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 24px;
+  z-index: 100;
+  width: calc(100% - 48px);
+  height: 70px;
+  margin: 24px 0 0;
+  padding: 8px 22px 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(165, 243, 252, 0.65);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 18px 45px rgba(6, 182, 212, 0.08),
+    0 8px 25px rgba(16, 185, 129, 0.06),
+    inset 0 0 1px rgba(255, 255, 255, 0.95);
+  animation: headerDrop 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.header-brand,
+.header-user {
+  display: flex;
+  align-items: center;
+}
+.header-brand {
+  gap: 12px;
+  cursor: pointer;
+}
+.header-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.header-title-wrap {
+  position: relative;
+  width: 210px;
+  height: 24px;
+  overflow: hidden;
+}
+.header-title-scroll {
+  position: absolute;
+  inset: 0;
+}
+.header-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  height: 24px;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.header-title-scroll.up .header-title-old {
+  animation: titleUpOld 0.18s cubic-bezier(0.35, 0, 0.2, 1) both;
+}
+.header-title-scroll.up .header-title-new {
+  animation: titleUpNew 0.18s cubic-bezier(0.35, 0, 0.2, 1) both;
+}
+.header-title-scroll.down .header-title-old {
+  animation: titleDownOld 0.18s cubic-bezier(0.35, 0, 0.2, 1) both;
+}
+.header-title-scroll.down .header-title-new {
+  animation: titleDownNew 0.18s cubic-bezier(0.35, 0, 0.2, 1) both;
+}
+.header-user {
+  gap: 10px;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 600;
+}
+.user-icon {
+  width: 38px;
+  height: 38px;
+  padding: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.58);
+  object-fit: contain;
+}
+.header-back {
+  position: fixed;
+  top: 106px;
+  left: 24px;
+  z-index: 99;
+  padding: 9px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.2);
+  cursor: pointer;
+  animation: backButtonSlide 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.header-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.28);
+}
+@keyframes headerDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-110px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes titleUpOld {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100%);
+    filter: blur(1px);
+  }
+}
+@keyframes titleUpNew {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes titleDownOld {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+    filter: blur(1px);
+  }
+}
+@keyframes titleDownNew {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes backButtonSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 600px) {
+  .header {
+    left: 12px;
+    width: calc(100% - 24px);
+    height: 62px;
+    margin-top: 12px;
+    padding: 6px 14px 6px 8px;
+  }
+  .header-logo {
+    width: 46px;
+    height: 46px;
+  }
+  .header-title-wrap {
+    width: 170px;
+    height: 22px;
+  }
+  .header-title {
+    height: 22px;
+    font-size: 15px;
+  }
+  .header-user span {
+    display: none;
+  }
+  .user-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .header-back {
+    top: 82px;
+    left: 12px;
+  }
+}
