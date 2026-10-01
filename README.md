@@ -8,6 +8,12 @@
 ---
 
 <div align="center">
+<a href="https://MICA-VN.github.io/MICA-APP/" target="_blank"> <img src="https://img.shields.io/badge/Mở%20App-38BDF8?style=for-the-badge&logoColor=white" alt="Mở App"></a>
+</div>
+
+---
+
+<div align="center">
 
 ### 🧪 **MICA Application**
 *Phát triển bởi **MICA-VN***
