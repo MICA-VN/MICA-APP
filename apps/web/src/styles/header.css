@@ -87,6 +87,15 @@
   background: rgba(255, 255, 255, 0.58);
   object-fit: contain;
 }
+.user-icon::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/user.svg");
+  background-size: cover;
+  background-position: center;
+}
 .header-back {
   position: fixed;
   top: 106px;

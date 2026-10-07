@@ -86,11 +86,7 @@ function Header({ route, navigationDirection }) {
           </div>
         </div>
         <div className="header-user">
-          <img
-            src="/images/user.svg"
-            alt="Tài khoản"
-            className="user-icon"
-          />
+          <div className="user-icon"></div>
           <span>Khách</span>
         </div>
       </header>
