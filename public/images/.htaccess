@@ -1,0 +1,6 @@
+Options -Indexes
+
+RewriteEngine On
+RewriteCond %{HTTP_REFERER} !^$
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?mica\.page\.gd [NC]
+RewriteRule \.(jpg|jpeg|png|gif|webp|svg)$ - [F,NC]
