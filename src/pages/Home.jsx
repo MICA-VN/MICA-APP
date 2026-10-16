@@ -1,5 +1,83 @@
-import "../styles/home.css";
-import packageInfo from "../../package.json";
+import { useRef } from "react";
+import "../styles/pages/Home.css";
+import Footer from "../components/Footer";
+
+function SpringDraggable({ className, children, label }) {
+  const dragRef = useRef(null);
+
+  const handlePointerDown = (event) => {
+    if (event.button !== 0) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    event.currentTarget.classList.remove("is-springing");
+    event.currentTarget.classList.add("is-dragging");
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const rawX = event.clientX - drag.startX;
+    const rawY = event.clientY - drag.startY;
+    const distance = Math.hypot(rawX, rawY);
+    const freeMovement = 18;
+    const resistanceRange = 56;
+    const maxPullRadius = 72;
+    const resistedDistance = Math.min(maxPullRadius, distance <= freeMovement
+      ? distance
+      : freeMovement +
+        resistanceRange * (1 - Math.exp(-(distance - freeMovement) / resistanceRange)));
+    const scale = distance === 0 ? 0 : resistedDistance / distance;
+    const x = rawX * scale;
+    const y = rawY * scale;
+    drag.moved ||= distance > 0;
+    event.currentTarget.style.setProperty("--drag-x", `${x}px`);
+    event.currentTarget.style.setProperty("--drag-y", `${y}px`);
+  };
+
+  const finishDrag = (event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+
+    const element = event.currentTarget;
+    element.classList.remove("is-dragging");
+    if (drag.moved) {
+      element.classList.add("is-springing");
+      element.style.setProperty("--drag-x", "0px");
+      element.style.setProperty("--drag-y", "0px");
+    } else {
+      element.style.removeProperty("--drag-x");
+      element.style.removeProperty("--drag-y");
+    }
+  };
+
+  const handleTransitionEnd = (event) => {
+    if (event.propertyName !== "transform") return;
+    event.currentTarget.classList.remove("is-springing");
+    event.currentTarget.style.removeProperty("--drag-x");
+    event.currentTarget.style.removeProperty("--drag-y");
+  };
+
+  return (
+    <span
+      className={`${className} draggable-molecule`}
+      aria-label={label}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={finishDrag}
+      onPointerCancel={finishDrag}
+      onLostPointerCapture={finishDrag}
+      onTransitionEnd={handleTransitionEnd}
+    >
+      {children}
+    </span>
+  );
+}
 
 const plannedFeatures = [
   {
@@ -42,9 +120,9 @@ function Home() {
           <div className="hero-copy">
             <span className="eyebrow"><span className="eyebrow-dot" /> KHO HỌC LIỆU HÓA HỌC TƯƠNG TÁC</span>
             <h1 id="hero-title">
-              Học Hóa học
+              Hoá học Tương tác
               <br />
-              <span>theo cách của bạn.</span>
+              <span>nền tảng thế hệ mới.</span>
             </h1>
             <p className="hero-description">
               Khám phá nguyên tố, giải bài tập và trải nghiệm các thí nghiệm
@@ -60,13 +138,27 @@ function Home() {
             </div>
           </div>
           <div className="hero-art" aria-hidden="true">
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-            <div className="molecule molecule-main">M</div>
-            <span className="molecule molecule-small molecule-small-one">O</span>
-            <span className="molecule molecule-small molecule-small-two">H</span>
-            <span className="molecule-dot molecule-dot-one" />
-            <span className="molecule-dot molecule-dot-two" />
+            <div className="orbit orbit-one">
+              <span className="orbit-electron-runner"><span className="orbit-electron" /></span>
+            </div>
+            <div className="orbit orbit-two">
+              <span className="orbit-electron-runner"><span className="orbit-electron electron-teal" /></span>
+            </div>
+            <SpringDraggable className="molecule-main" label="Kéo chữ M">
+              M
+            </SpringDraggable>
+            <SpringDraggable className="molecule-small molecule-small-one" label="Kéo chữ i">
+              i
+            </SpringDraggable>
+            <SpringDraggable className="molecule-small molecule-small-two" label="Kéo chữ C">
+              C
+            </SpringDraggable>
+            <SpringDraggable className="molecule-small molecule-small-three" label="Kéo chữ A">
+              A
+            </SpringDraggable>
+            <span className="floating-electron floating-electron-one" />
+            <span className="floating-electron floating-electron-two" />
+            <span className="floating-electron floating-electron-three" />
             <div className="hero-art-label">
               <span>HỌC TẬP</span>
               <span>·</span>
@@ -110,15 +202,7 @@ function Home() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="footer-details">
-          <p>
-            © {new Date().getFullYear()} {packageInfo.displayName ?? packageInfo.name}
-            {" · "}{packageInfo.description}{" · "}v{packageInfo.version}
-          </p>
-          <p className="footer-author">Phát triển bởi {packageInfo.author.name}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

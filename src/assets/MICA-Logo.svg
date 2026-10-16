@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <rect class="mica-logo-background" width="64" height="64" rx="18" fill="#2563eb"/>
+    <g class="mica-logo-mark">
+        <path class="mica-logo-fill" fill="#ffffff" fill-rule="evenodd" d="M25.7 8H39.7Q41.7 8 41.7 10V24.5Q41.7 27.3 43.15 29.84L53.53 47.59Q55.16 50.39 53.56 53.19Q51.96 56 48.7 56H16.7Q13.44 56 11.84 53.19Q10.24 50.39 11.87 47.59L22.25 29.84Q23.7 27.3 23.7 24.5V10Q23.7 8 25.7 8ZM29.7 12H35.7Q37.7 12 37.7 14V24.5Q37.7 28.3 39.7 31.86L50.08 49.61Q51.4 51.9 48.7 52H16.7Q14 52 15.32 49.61L25.7 31.86Q27.7 28.3 27.7 24.5V14Q27.7 12 29.7 12Z"/>
+        <path class="mica-logo-outer-outline" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round" d="M25.7 8H39.7Q41.7 8 41.7 10V24.5Q41.7 27.3 43.15 29.84L53.53 47.59Q55.16 50.39 53.56 53.19Q51.96 56 48.7 56H16.7Q13.44 56 11.84 53.19Q10.24 50.39 11.87 47.59L22.25 29.84Q23.7 27.3 23.7 24.5V10Q23.7 8 25.7 8Z"/>
+        <path class="mica-logo-inner-outline" fill="none" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round" d="M29.7 12H35.7Q37.7 12 37.7 14V24.5Q37.7 28.3 39.7 31.86L50.08 49.61Q51.4 51.9 48.7 52H16.7Q14 52 15.32 49.61L25.7 31.86Q27.7 28.3 27.7 24.5V14Q27.7 12 29.7 12Z"/>
+    </g>
+</svg>

@@ -3,7 +3,7 @@
   "displayName": "MICA Chemistry",
   "description": "Kho học liệu hóa học tương tác",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.1",
   "author": {
     "name": "Nguyễn Thiện Nhân",
     "email": "ntnhan3062@gmail.com"
@@ -12,8 +12,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "node src/services/server.js",
-    "server": "vite build && node src/services/server.js",
+    "start": "node --env-file-if-exists=.env src/services/server.js",
+    "server": "vite build && node --env-file-if-exists=.env src/services/server.js",
     "lint": "eslint ."
   },
   "dependencies": {
