@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import logoSvg from "../assets/MICA-Logo.svg?raw";
+import { useCallback, useRef, useState } from "react";
+import SvgIcon from "./SvgIcon";
 import "../styles/components/Logo.css";
-
-const svgContent = logoSvg.slice(logoSvg.indexOf(">") + 1, logoSvg.lastIndexOf("</svg>"));
 
 function createClassSuffix() {
   const letters = "abcdefghijklmnopqrstuvwxyz";
@@ -17,7 +15,7 @@ function Logo({ w = 24, h = 24, bg = false, animation = false, className }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [hasLeftSincePlay, setHasLeftSincePlay] = useState(false);
-  const svgRef = useRef(null);
+  const logoRef = useRef(null);
   const classes = {
     root: `mica-logo-root-${suffix}`,
     animated: `mica-logo-hover-${suffix}`,
@@ -27,25 +25,22 @@ function Logo({ w = 24, h = 24, bg = false, animation = false, className }) {
     noBackground: `mica-logo-no-bg-${suffix}`,
     noBackgroundBase: "mica-logo-no-bg",
   };
-  const content = svgContent.replace(/class="([^"]+)"/g, (_match, names) => {
-    const namesWithSuffix = names.split(/\s+/).map((name) => `${name} ${name}-${suffix}`);
-    return `class="${namesWithSuffix.join(" ")}"`;
-  });
+  const handleSvgLoad = useCallback((svg) => {
+    if (!animation) return;
 
-  useEffect(() => {
-    if (animation) {
-      const svg = svgRef.current;
-      svg.querySelectorAll(".mica-logo-outer-outline, .mica-logo-inner-outline").forEach((outline) => {
-        outline.style.setProperty("--mica-logo-path-length", `${outline.getTotalLength()}px`);
-        outline.style.strokeDasharray = "var(--mica-logo-path-length)";
-      });
-    }
-  }, [animation, classes.root]);
+    svg.querySelectorAll(".mica-logo-outer-outline, .mica-logo-inner-outline").forEach((outline) => {
+      const pathLength = outline.getTotalLength();
+      outline.style.setProperty("--mica-logo-path-length", `${pathLength}px`);
+      outline.style.strokeDasharray = `${pathLength}px`;
+      outline.style.strokeDashoffset = "0";
+    });
+  }, [animation]);
 
   const playAnimation = () => {
     if (!animation || isPlaying || (hasPlayed && !hasLeftSincePlay)) return;
 
-    const svg = svgRef.current;
+    const svg = logoRef.current?.querySelector("svg");
+    if (!svg) return;
     svg.querySelectorAll(".mica-logo-outer-outline, .mica-logo-inner-outline").forEach((outline) => {
       outline.style.strokeDashoffset = outline.style.getPropertyValue("--mica-logo-path-length");
     });
@@ -70,7 +65,8 @@ function Logo({ w = 24, h = 24, bg = false, animation = false, className }) {
   const handleAnimationEnd = (event) => {
     if (event.animationName !== "mica-logo-settle") return;
 
-    const svg = svgRef.current;
+    const svg = logoRef.current?.querySelector("svg");
+    if (!svg) return;
     svg.querySelectorAll(".mica-logo-outer-outline, .mica-logo-inner-outline").forEach((outline) => {
       outline.style.strokeDashoffset = "0";
     });
@@ -88,22 +84,23 @@ function Logo({ w = 24, h = 24, bg = false, animation = false, className }) {
   ].filter(Boolean).join(" ");
 
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 64 64"
-      width={w}
-      height={h}
-      ref={svgRef}
+    <span
+      ref={logoRef}
       className={rootClasses}
-      aria-hidden="true"
-      focusable="false"
       onPointerEnter={animation ? handlePointerEnter : undefined}
       onPointerLeave={animation ? handlePointerLeave : undefined}
-      // onClick={animation ? playAnimation : undefined}
+      onClick={animation ? playAnimation : undefined}
       onAnimationEnd={animation ? handleAnimationEnd : undefined}
-      style={{ display: "block", flex: "0 0 auto" }}
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
+      style={{ display: "block", flex: "0 0 auto", width: w, height: h }}
+    >
+      <SvgIcon
+        name="MICA-Logo"
+        w={w}
+        h={h}
+        className={`mica-logo-asset-${suffix}`}
+        onLoad={handleSvgLoad}
+      />
+    </span>
   );
 }
 

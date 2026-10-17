@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/components/SvgIcon.css";
 
 const SVG_API_URL = "https://mica-app-api.mica-vn.workers.dev/api/assets/svg";
 
-function SvgIcon({ name, size = 24, w, h, className }) {
+function SvgIcon({ name, size = 24, w, h, className, onLoad }) {
   const width = w ?? size;
   const height = h ?? size;
   const query = new URLSearchParams({ name });
@@ -17,6 +17,7 @@ function SvgIcon({ name, size = 24, w, h, className }) {
 
   const url = `${SVG_API_URL}?${query}`;
   const [result, setResult] = useState({ url: "", markup: "", error: null });
+  const iconRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,14 +39,28 @@ function SvgIcon({ name, size = 24, w, h, className }) {
     return () => controller.abort();
   }, [name, url]);
 
+  useEffect(() => {
+    if (result.url !== url || !result.markup || !onLoad) return;
+
+    const svg = iconRef.current?.querySelector("svg");
+    if (svg) onLoad(svg);
+  }, [onLoad, result.markup, result.url, url]);
+
   if (result.url !== url) {
-    return <span className={`svg-icon ${className ?? ""}`} aria-hidden="true" />;
+    return (
+      <span
+        ref={iconRef}
+        className={`svg-icon ${className ?? ""}`}
+        aria-hidden="true"
+      />
+    );
   }
 
   if (result.error) {
     return (
       <span
         className={`svg-icon svg-icon-error ${className ?? ""}`}
+        ref={iconRef}
         role="img"
         aria-label={`Không tải được biểu tượng ${name}`}
         title={result.error.message}
@@ -58,6 +73,7 @@ function SvgIcon({ name, size = 24, w, h, className }) {
   return (
     <span
       className={`svg-icon ${className ?? ""}`}
+      ref={iconRef}
       aria-hidden="true"
       dangerouslySetInnerHTML={{ __html: result.markup }}
     />

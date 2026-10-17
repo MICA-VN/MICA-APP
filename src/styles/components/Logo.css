@@ -1,6 +1,11 @@
 .mica-logo {
   display: block;
   flex: 0 0 auto;
+  line-height: 0;
+}
+.mica-logo .svg-icon {
+  width: 100%;
+  height: 100%;
 }
 .mica-logo .mica-logo-background {
   display: inline;
