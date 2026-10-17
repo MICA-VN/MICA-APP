@@ -64,7 +64,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: url("/images/user.svg") no-repeat center / contain;
+  background: url("https://mica-app-api.mica-vn.workers.dev/api/assets/svg?name=user&size=26") no-repeat center / contain;
 }
 .user-menu {
   position: absolute;
