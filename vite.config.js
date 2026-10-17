@@ -1,9 +1,39 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import react from "@vitejs/plugin-react";
+import { createSvgAssetResponse } from "./cloudflare/api/assets/svg.js";
+import { loadSvgAsset } from "./src/services/svgAssets.js";
+import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "svg-assets-api",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          const requestUrl = new URL(req.url ?? "/", "http://localhost");
+          if (requestUrl.pathname !== "/api/assets/svg") {
+            next();
+            return;
+          }
+
+          try {
+            const response = await createSvgAssetResponse(
+              new Request(requestUrl, {
+                method: req.method,
+                headers: req.headers,
+              }),
+              loadSvgAsset,
+            );
+            res.statusCode = response.status;
+            response.headers.forEach((value, name) => res.setHeader(name, value));
+            res.end(await response.text());
+          } catch (error) {
+            next(error);
+          }
+        });
+      },
+    },
+  ],
   build: {
     minify: "terser",
     terserOptions: {
@@ -17,5 +47,5 @@ export default defineConfig({
         comments: false
       }
     }
-  }
-})
+  },
+});

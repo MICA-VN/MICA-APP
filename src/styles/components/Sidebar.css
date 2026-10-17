@@ -51,16 +51,16 @@
   background: transparent;
   cursor: pointer;
 }
-.sidebar-nav-item img {
+.sidebar-home-icon {
   width: 23px;
   height: 23px;
-  filter: brightness(0) invert(1);
+  color: #ffffff;
 }
 .sidebar-nav-item.active {
   background: #ffffff;
 }
-.sidebar-nav-item.active img {
-  filter: invert(20%) sepia(74%) saturate(2607%) hue-rotate(221deg) brightness(87%) contrast(93%);
+.sidebar-nav-item.active .sidebar-home-icon {
+  color: #2445b2;
 }
 .sidebar-nav-label {
   display: none;
@@ -141,7 +141,7 @@
     padding: 0 15px;
     border-radius: 10px;
   }
-  .sidebar-nav-item img {
+  .sidebar-nav-item .sidebar-home-icon {
     flex: 0 0 auto;
   }
   .sidebar-nav-label {

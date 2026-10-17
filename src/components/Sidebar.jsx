@@ -1,5 +1,5 @@
 import Logo from "./Logo";
-import homeIcon from "../../private/svg/home.svg";
+import SvgIcon from "./SvgIcon";
 import "../styles/components/Sidebar.css";
 
 function Sidebar({ isMobileMenuOpen, onClose }) {
@@ -32,7 +32,7 @@ function Sidebar({ isMobileMenuOpen, onClose }) {
             href="#home"
             onClick={onClose}
           >
-            <img src={homeIcon} alt="" />
+            <SvgIcon name="home" size={23} className="sidebar-home-icon" />
             <span className="sidebar-nav-label">Trang chủ</span>
             <span className="sidebar-tooltip" role="tooltip">Trang chủ</span>
           </a>
