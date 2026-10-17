@@ -22,10 +22,24 @@ function withDimensions(svg, width, height) {
 }
 
 export async function createSvgAssetResponse(request, loadSvg) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
   if (request.method !== "GET") {
     return new Response("Method Not Allowed", {
       status: 405,
-      headers: { Allow: "GET" },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        Allow: "GET, OPTIONS",
+      },
     });
   }
 
@@ -36,7 +50,10 @@ export async function createSvgAssetResponse(request, loadSvg) {
   const heightValues = url.searchParams.getAll("h");
 
   if (nameValues.length !== 1 || !SVG_NAME_PATTERN.test(nameValues[0])) {
-    return new Response("A valid SVG name is required", { status: 400 });
+    return new Response("A valid SVG name is required", {
+      status: 400,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
   }
 
   const hasSize = sizeValues.length > 0;
@@ -48,7 +65,10 @@ export async function createSvgAssetResponse(request, loadSvg) {
     (hasSize && hasDimensions) ||
     (!hasSize && hasDimensions && (widthValues.length !== 1 || heightValues.length !== 1))
   ) {
-    return new Response("Use either size or both w and h", { status: 400 });
+    return new Response("Use either size or both w and h", {
+      status: 400,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
   }
 
   const width = hasSize
@@ -65,6 +85,7 @@ export async function createSvgAssetResponse(request, loadSvg) {
   if (width === null || height === null) {
     return new Response(`Dimensions must be integers between 1 and ${MAX_DIMENSION}`, {
       status: 400,
+      headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 
@@ -73,11 +94,17 @@ export async function createSvgAssetResponse(request, loadSvg) {
     svg = await loadSvg(nameValues[0]);
   } catch (error) {
     console.error("Failed to load SVG asset", error);
-    return new Response("Failed to load SVG asset", { status: 500 });
+    return new Response("Failed to load SVG asset", {
+      status: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
   }
 
   if (svg === null) {
-    return new Response("SVG asset not found", { status: 404 });
+    return new Response("SVG asset not found", {
+      status: 404,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
   }
 
   let responseBody;
@@ -85,13 +112,17 @@ export async function createSvgAssetResponse(request, loadSvg) {
     responseBody = withDimensions(svg, width, height);
   } catch (error) {
     console.error("Invalid SVG asset", error);
-    return new Response("Invalid SVG asset", { status: 500 });
+    return new Response("Invalid SVG asset", {
+      status: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
   }
 
   return new Response(responseBody, {
     headers: {
       "Cache-Control": "public, max-age=3600",
       "Content-Type": "image/svg+xml; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
       "X-Content-Type-Options": "nosniff",
     },
   });

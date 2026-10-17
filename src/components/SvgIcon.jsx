@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "../styles/components/SvgIcon.css";
 
+const SVG_API_URL = "https://mica-app-api.mica-vn.workers.dev/api/assets/svg";
+
 function SvgIcon({ name, size = 24, w, h, className }) {
   const width = w ?? size;
   const height = h ?? size;
@@ -13,7 +15,7 @@ function SvgIcon({ name, size = 24, w, h, className }) {
     query.set("h", String(height));
   }
 
-  const url = `/api/assets/svg?${query}`;
+  const url = `${SVG_API_URL}?${query}`;
   const [result, setResult] = useState({ url: "", markup: "", error: null });
 
   useEffect(() => {
