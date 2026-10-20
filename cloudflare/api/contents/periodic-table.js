@@ -1,9 +1,17 @@
-import initSqlJs from "sql.js/dist/sql-wasm-inline.js";
+// Cloudflare Workers failed while instantiating sql.js' embedded WebAssembly build.
+// The ASM build is larger and slower, but is fully self-contained and is ample for
+// this small, read-only periodic-table database.
+import initSqlJs from "sql.js/dist/sql-asm.js";
 
 const MAX_REQUEST_BYTES = 16 * 1024;
 const MAX_QUERY_LENGTH = 8 * 1024;
 const MAX_RESULT_ROWS = 500;
-const sqlRuntime = initSqlJs();
+let sqlRuntime;
+
+function getSqlRuntime() {
+  sqlRuntime ??= initSqlJs();
+  return sqlRuntime;
+}
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -150,7 +158,7 @@ export async function createPeriodicTableResponse(request, loadDatabase) {
 
   let database;
   try {
-    const SQL = await sqlRuntime;
+    const SQL = await getSqlRuntime();
     database = new SQL.Database(databaseBytes);
     database.exec("PRAGMA query_only = ON");
     const statement = database.prepare(body.sql);
