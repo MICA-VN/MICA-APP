@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { getApiUrl } from "../services/api";
 import "../styles/components/SvgIcon.css";
-
-const SVG_API_URL = "https://mica-app-api.mica-vn.workers.dev/api/assets/svg";
 
 function SvgIcon({ name, size = 24, w, h, className, onLoad }) {
   const width = w ?? size;
@@ -15,14 +14,22 @@ function SvgIcon({ name, size = 24, w, h, className, onLoad }) {
     query.set("h", String(height));
   }
 
-  const url = `${SVG_API_URL}?${query}`;
+  const url = getApiUrl(`/api/assets/svg?${query}`);
   const [result, setResult] = useState({ url: "", markup: "", error: null });
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const iconRef = useRef(null);
+
+  useEffect(() => {
+    const handleOnline = () => setRefreshVersion((version) => version + 1);
+
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch(url, { signal: controller.signal })
+    fetch(url, { cache: refreshVersion === 0 ? "default" : "no-cache", signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`SVG request failed (${response.status}) for "${name}"`);
@@ -33,11 +40,15 @@ function SvgIcon({ name, size = 24, w, h, className, onLoad }) {
       .catch((error) => {
         if (error.name === "AbortError") return;
         console.error(error);
-        setResult({ url, markup: "", error });
+        setResult((current) => (
+          current.url === url && current.markup
+            ? { ...current, error }
+            : { url, markup: "", error }
+        ));
       });
 
     return () => controller.abort();
-  }, [name, url]);
+  }, [name, refreshVersion, url]);
 
   useEffect(() => {
     if (result.url !== url || !result.markup || !onLoad) return;
@@ -56,7 +67,7 @@ function SvgIcon({ name, size = 24, w, h, className, onLoad }) {
     );
   }
 
-  if (result.error) {
+  if (result.error && !result.markup) {
     return (
       <span
         className={`svg-icon svg-icon-error ${className ?? ""}`}

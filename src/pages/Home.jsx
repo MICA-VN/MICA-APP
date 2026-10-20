@@ -115,7 +115,7 @@ const plannedFeatures = [
 function Home() {
   return (
     <div className="home-page">
-      <main className="home" id="home">
+      <main className="home">
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-copy">
             <span className="eyebrow"><span className="eyebrow-dot" /> KHO HỌC LIỆU HÓA HỌC TƯƠNG TÁC</span>

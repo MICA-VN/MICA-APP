@@ -46,7 +46,7 @@ body {
   overflow: hidden;
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
-  background: #f5f8ff;
+  background: var(--bg);
 }
 a {
   color: inherit;

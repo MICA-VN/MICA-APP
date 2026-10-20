@@ -609,3 +609,22 @@
     animation-iteration-count: 1 !important;
   }
 }
+@media (prefers-color-scheme: dark) {
+  .home-page { background: #070d18; scrollbar-color: #405777 transparent; }
+  .home-page::-webkit-scrollbar-thumb { border-color: #070d18; background: #405777; }
+  .section-kicker { color: #76bbff; }
+  .section-heading h2 { color: #e4f0fc; }
+  .section-heading p { color: #a9bdd2; }
+  .feature-count { color: #8fc8ff; }
+  .feature-count span { color: #8fa5bd; }
+  .feature-card { border-color: #263d59; background: #0d1726; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16); }
+  .feature-number { color: #8fa5bd; }
+  .feature-icon { background: #18324b; color: #8fc8ff; }
+  .teal .feature-icon { background: #193d3a; color: #6de0d1; }
+  .violet .feature-icon { background: #302b50; color: #b9a9ff; }
+  .feature-status { border-color: #29415d; background: #101d30; color: #b5c8dc; }
+  .feature-category { color: #8fc8ff; }
+  .feature-card h3 { color: #e4f0fc; }
+  .feature-card-content p { color: #b5c8dc; }
+  .feature-details li { background: #142238; color: #b8cbe0; }
+}

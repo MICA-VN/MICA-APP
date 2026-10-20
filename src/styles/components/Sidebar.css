@@ -20,6 +20,7 @@
   justify-content: center;
   border: 0;
   background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 .sidebar-brand::after {
@@ -49,9 +50,13 @@
   border: 0;
   border-radius: 13px;
   background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
-.sidebar-home-icon {
+.sidebar-home-icon,
+.sidebar-periodic-table-icon {
   width: 23px;
   height: 23px;
   color: #ffffff;
@@ -59,7 +64,8 @@
 .sidebar-nav-item.active {
   background: #ffffff;
 }
-.sidebar-nav-item.active .sidebar-home-icon {
+.sidebar-nav-item.active .sidebar-home-icon,
+.sidebar-nav-item.active .sidebar-periodic-table-icon {
   color: #2445b2;
 }
 .sidebar-nav-label {
@@ -141,7 +147,8 @@
     padding: 0 15px;
     border-radius: 10px;
   }
-  .sidebar-nav-item .sidebar-home-icon {
+  .sidebar-nav-item .sidebar-home-icon,
+  .sidebar-nav-item .sidebar-periodic-table-icon {
     flex: 0 0 auto;
   }
   .sidebar-nav-label {

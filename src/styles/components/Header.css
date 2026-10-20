@@ -25,6 +25,9 @@
   gap: 9px;
   border: 0;
   background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 .header-favicon {
@@ -39,6 +42,85 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.offline-indicator {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fecaca;
+  border-radius: 50%;
+  background: #fff1f2;
+  color: #dc2626;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.offline-indicator-online,
+.offline-indicator-exiting {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.offline-indicator-motion-entering {
+  animation: offline-indicator-enter 0.15s ease both;
+}
+.offline-indicator-motion-exiting {
+  animation: offline-indicator-exit 0.15s ease both;
+  pointer-events: none;
+}
+.offline-indicator-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.offline-indicator-offline .offline-indicator-icon:first-child,
+.offline-indicator-online .offline-indicator-icon:last-child,
+.offline-indicator-exiting .offline-indicator-icon:last-child {
+  opacity: 1;
+  transform: scale(1);
+}
+.offline-indicator svg {
+  width: 20px;
+  height: 20px;
+}
+@keyframes offline-indicator-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes offline-indicator-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .offline-indicator {
+    transition-duration: 0.01ms;
+  }
+  .offline-indicator-icon {
+    transition-duration: 0.01ms;
+  }
+  .offline-indicator-motion-entering,
+  .offline-indicator-motion-exiting {
+    animation-duration: 0.01ms;
+  }
 }
 .header-user {
   position: relative;
@@ -58,13 +140,6 @@
 .user-icon:hover {
   border-color: #aebfe0;
   background: #f5f8ff;
-}
-.user-icon::before {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: url("https://mica-app-api.mica-vn.workers.dev/api/assets/svg?name=user&size=26") no-repeat center / contain;
 }
 .user-menu {
   position: absolute;
@@ -161,4 +236,13 @@
   .mobile-menu-button {
     display: flex;
   }
+}
+@media (prefers-color-scheme: dark) {
+  .header { border-bottom-color: #20354d; background: #0c1625; }
+  .user-icon, .mobile-menu-button { border-color: #29415d; background: #101d30; color: #d9e9f8; }
+  .mobile-menu-button span { background: #b9d8f4; }
+  .user-menu { border-color: #29415d; background: #101d30; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+  .user-name { border-bottom-color: #29415d; color: #d8e7f5; }
+  .user-menu-item { color: #d8e7f5; }
+  .user-menu-item:hover { background: #18324b; color: #8fc8ff; }
 }
