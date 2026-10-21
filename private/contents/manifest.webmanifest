@@ -14,13 +14,13 @@
       "src": "https://mica-app-api.mica-vn.workers.dev/api/assets/svg?name=MICA-Logo&size=192",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "https://mica-app-api.mica-vn.workers.dev/api/assets/svg?name=MICA-Logo&size=512",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
