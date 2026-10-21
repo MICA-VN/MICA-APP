@@ -1,5 +1,6 @@
-const CACHE_NAME = "mica-app-shell-v8";
+const CACHE_NAME = "mica-app-shell-v9";
 const WORKER_API_BASE_URL = "https://mica-app-api.mica-vn.workers.dev";
+const MANIFEST_URL = new URL("/api/contents/manifest", WORKER_API_BASE_URL).href;
 const API_BASE_URL = self.location.hostname === "mica.page.gd"
   ? WORKER_API_BASE_URL
   : self.location.origin;
@@ -31,7 +32,6 @@ const SVG_NAMES = [
 ];
 const APP_SHELL_URLS = [
   "/",
-  "/manifest.webmanifest",
   "/images/MICA-TextLogo.png",
 ];
 
@@ -83,11 +83,12 @@ self.addEventListener("install", (event) => {
         ...appAssetUrls.map((url) => cache.add(url)),
       ]);
       const assetResults = await Promise.allSettled(
-        SVG_ASSET_URLS.map((url) => cache.add(url)),
+        [MANIFEST_URL, ...SVG_ASSET_URLS].map((url) => cache.add(url)),
       );
       assetResults.forEach((result, index) => {
         if (result.status === "rejected") {
-          console.warn("Failed to pre-cache SVG asset", SVG_ASSET_URLS[index], result.reason);
+          const url = [MANIFEST_URL, ...SVG_ASSET_URLS][index];
+          console.warn("Failed to pre-cache remote app asset", url, result.reason);
         }
       });
       await self.skipWaiting();
@@ -113,8 +114,12 @@ self.addEventListener("fetch", (event) => {
   const isAppRequest = requestUrl.origin === self.location.origin;
   const isApiSvgRequest = requestUrl.pathname === "/api/assets/svg" &&
     (requestUrl.origin === API_BASE_URL || requestUrl.origin === WORKER_API_BASE_URL);
+  const isApiManifestRequest = requestUrl.href === MANIFEST_URL;
 
-  if (request.method !== "GET" || (!isAppRequest && !isApiSvgRequest)) return;
+  if (
+    request.method !== "GET" ||
+    (!isAppRequest && !isApiSvgRequest && !isApiManifestRequest)
+  ) return;
 
   event.respondWith(
     fetch(request)

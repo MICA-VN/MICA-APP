@@ -1,4 +1,5 @@
 import { createSvgAssetResponse } from "./api/assets/svg.js";
+import { createManifestResponse } from "./api/contents/manifest.js";
 import { createPeriodicTableResponse } from "./api/contents/periodic-table.js";
 
 export default {
@@ -19,6 +20,10 @@ export default {
 
     if (url.pathname === "/api/contents/periodic_table") {
       return createPeriodicTableResponse(request, env.DB);
+    }
+
+    if (url.pathname === "/api/contents/manifest") {
+      return createManifestResponse(request, env.ASSETS);
     }
 
     return new Response("Not Found", { status: 404 });

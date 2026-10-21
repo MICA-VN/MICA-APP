@@ -24,7 +24,7 @@ dung được viết bằng tiếng Việt.
 ```text
 cloudflare/                 Worker và các endpoint API
   api/assets/               Xử lý tài nguyên SVG
-  api/contents/             API dữ liệu bảng tuần hoàn và kiểm thử
+  api/contents/             API manifest và dữ liệu bảng tuần hoàn
     periodic-table-data.js  Truy vấn dữ liệu từ D1
   index.js                  Điểm vào Worker
   wrangler.toml             Cấu hình Worker, D1 và Assets

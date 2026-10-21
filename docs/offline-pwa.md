@@ -6,26 +6,30 @@ nguyên web, IndexedDB lưu bản ghi nguyên tố.
 
 ## Khai báo cài đặt
 
-`public/manifest.webmanifest` khai báo tên ứng dụng, ngôn ngữ, màu giao diện,
-chế độ hiển thị standalone và icon. Icon manifest trỏ tới SVG logo trên
-Cloudflare Worker.
+`private/contents/manifest.webmanifest` khai báo tên ứng dụng, ngôn ngữ, màu
+giao diện, chế độ hiển thị standalone và icon. Worker phục vụ file tại
+`/api/contents/manifest`; `index.html` tham chiếu trực tiếp domain Worker để
+tránh máy chủ hosting sửa nội dung manifest. Icon manifest trỏ tới SVG logo
+trên Cloudflare Worker.
 
 `src/main.jsx` đăng ký `/sw.js` sau khi trang tải xong. Nếu đăng ký thất bại,
 lỗi được ghi vào console.
 
 ## Cache app shell và tài nguyên
 
-`public/sw.js` sử dụng tên cache có version (`mica-app-shell-v8`). Khi cài đặt,
+`public/sw.js` sử dụng tên cache có version (`mica-app-shell-v9`). Khi cài đặt,
 Service Worker:
 
 1. Lưu trang gốc.
-2. Lưu manifest, text logo và các bundle JS/CSS được tham chiếu trong HTML.
-3. Thử cache danh sách icon SVG cùng các kích thước sử dụng trong giao diện.
+2. Lưu text logo và các bundle JS/CSS được tham chiếu trong HTML.
+3. Thử cache manifest từ Worker và danh sách icon SVG cùng các kích thước sử
+   dụng trong giao diện.
 4. Kích hoạt worker mới và xóa các cache cũ có tiền tố `mica-app-shell-`.
 
-Khi có yêu cầu GET thuộc ứng dụng hoặc SVG, Service Worker ưu tiên mạng. Nếu
-fetch thất bại, nó tìm phản hồi trong Cache API; với navigation, nó có thể trả
-app shell đã lưu. POST không được Service Worker cache hoặc thay thế.
+Khi có yêu cầu GET thuộc ứng dụng, manifest hoặc SVG, Service Worker ưu tiên
+mạng. Nếu fetch thất bại, nó tìm phản hồi trong Cache API; với navigation, nó
+có thể trả app shell đã lưu. POST không được Service Worker cache hoặc thay
+thế.
 
 ## Lưu dữ liệu bảng tuần hoàn
 

@@ -71,6 +71,18 @@ Các mã lỗi đáng chú ý:
 2048. Tên asset phải phù hợp với định dạng ký tự cho phép. Endpoint trả loại
 nội dung SVG, cache-control và các header bảo vệ cơ bản.
 
+## Endpoint manifest
+
+`GET /api/contents/manifest` phục vụ nguyên nội dung file
+`private/contents/manifest.webmanifest` qua Assets binding. Endpoint trả
+`application/manifest+json`, cho phép CORS để trang MICA tải manifest từ domain
+Worker, và đặt cache-control một giờ. Request method khác GET (ngoại trừ OPTIONS)
+bị từ chối.
+
+`index.html` tham chiếu endpoint Cloudflare trực tiếp. Nhờ vậy InfinityFree chỉ
+phục vụ HTML, không thể chèn nội dung kiểm tra bot vào response của
+`manifest.webmanifest`.
+
 ## Chạy Worker local
 
 Từ thư mục `cloudflare/`:
