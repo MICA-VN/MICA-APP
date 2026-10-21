@@ -2,6 +2,12 @@ name = "mica-app-api"
 main = "index.js"
 compatibility_date = "2026-10-17"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "contents"
+database_id = "f4714465-f63b-4696-8c62-86802f9b09e2"
+remote = true
+
 [assets]
 directory = "../private"
 binding = "ASSETS"

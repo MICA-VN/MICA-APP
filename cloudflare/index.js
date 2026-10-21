@@ -18,16 +18,7 @@ export default {
     }
 
     if (url.pathname === "/api/contents/periodic_table") {
-      return createPeriodicTableResponse(request, async () => {
-        const databaseResponse = await env.ASSETS.fetch(
-          new Request(new URL("/contents/periodic_table.db", request.url)),
-        );
-        if (databaseResponse.status === 404) return null;
-        if (!databaseResponse.ok) {
-          throw new Error(`Database asset request failed with status ${databaseResponse.status}`);
-        }
-        return new Uint8Array(await databaseResponse.arrayBuffer());
-      });
+      return createPeriodicTableResponse(request, env.DB);
     }
 
     return new Response("Not Found", { status: 404 });

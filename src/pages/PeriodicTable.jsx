@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { getApiUrl } from "../services/api";
+import { getCloudflareApiUrl } from "../services/api";
 import { readCachedElements, saveCachedElements } from "../services/periodicTableCache";
 import "../styles/pages/PeriodicTable.css";
 
-const PERIODIC_TABLE_API_URL = getApiUrl("/api/contents/periodic_table");
-const ELEMENTS_PER_REQUEST = 5;
+const PERIODIC_TABLE_API_URL = getCloudflareApiUrl("/api/contents/periodic_table");
 const TOTAL_ELEMENTS = 118;
-const TOTAL_BATCHES = Math.ceil(TOTAL_ELEMENTS / ELEMENTS_PER_REQUEST);
+const ELEMENTS_PER_REVEAL_STEP = 5;
+const PERIODIC_TABLE_FIELDS = ["name", "symbol", "category", "group", "period"];
+const REQUIRED_RESPONSE_FIELDS = ["number", ...PERIODIC_TABLE_FIELDS];
 const PERIODS = Array.from({ length: 7 }, (_value, index) => index + 1);
 const GROUPS = Array.from({ length: 18 }, (_value, index) => index + 1);
 const PERIOD_GROUPS = {
@@ -57,7 +58,7 @@ function ElementTile({ element, dimState }) {
     <div
       className={`element-tile category-${element.category}${dimState ? ` ${dimState}` : ""}`}
       data-element-category={element.category}
-      style={{ "--reveal-order": (element.number - 1) % ELEMENTS_PER_REQUEST }}
+      style={{ "--reveal-order": (element.number - 1) % ELEMENTS_PER_REVEAL_STEP }}
       aria-label={`${element.number}, ${element.symbol}, ${element.name}, ${CATEGORY_LABELS[element.category] ?? element.category}`}
     >
       <span className="element-number">{element.number}</span>
@@ -203,103 +204,76 @@ function PeriodicTable() {
       setErrorMessage("");
       if (!hasCachedElements) setRequestState("loading");
       try {
-        const offsets = Array.from(
-          { length: TOTAL_BATCHES },
-          (_value, index) => index * ELEMENTS_PER_REQUEST,
-        );
-        const batchResults = await Promise.allSettled(offsets.map(async (offset) => {
-          const sql = `
-            SELECT number, symbol, name, category, "group" AS elementGroup, period
-            FROM elements
-            ORDER BY number
-            LIMIT ${ELEMENTS_PER_REQUEST} OFFSET ${offset}
-          `;
-          const response = await fetch(PERIODIC_TABLE_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sql }),
-            signal: controller.signal,
-          });
-          if (!response.ok) {
-            const responseBody = await response.text();
-            let errorMessage = `API request failed (${response.status})`;
-            try {
-              const result = JSON.parse(responseBody);
-              errorMessage = result.error ?? errorMessage;
-            } catch {
-              if (responseBody) errorMessage = responseBody;
-            }
-            throw new Error(errorMessage);
-          }
-          const responseBody = await response.text();
-          let result;
+        const from = 1;
+        const to = TOTAL_ELEMENTS;
+        const response = await fetch(PERIODIC_TABLE_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields: PERIODIC_TABLE_FIELDS, from, to }),
+          signal: controller.signal,
+        });
+        const responseBody = await response.text();
+        let result;
 
-          try {
-            result = JSON.parse(responseBody);
-          } catch {
-            throw new Error(
-              response.ok
-                ? "Periodic table API returned invalid JSON"
-                : `API request failed (${response.status})`,
-            );
-          }
-          if (!response.ok) {
-            throw new Error(result.error ?? `API request failed (${response.status})`);
-          }
-          if (!Array.isArray(result.rows) || result.rows.length > ELEMENTS_PER_REQUEST) {
-            throw new TypeError("Periodic table API returned an invalid result");
-          }
-
-          if (result.rows.length > 0) {
-            hasCachedElements = true;
-            setElements((currentElements) => {
-              const merged = new Map(currentElements.map((element) => [element.number, element]));
-              result.rows.forEach((element) => merged.set(element.number, element));
-              return [...merged.values()].sort((left, right) => left.number - right.number);
-            });
-            try {
-              await saveCachedElements(result.rows);
-            } catch (error) {
-              console.error("Failed to save offline periodic table data", error);
-              setCacheError("Không thể lưu dữ liệu bảng tuần hoàn để dùng ngoại tuyến.");
-            }
-          }
-        }));
-
-        if (cancelled || currentRequestId !== requestId) return;
-
-        const failedBatches = batchResults.filter((result) => result.status === "rejected");
-        if (failedBatches.length > 0) {
-          if (!navigator.onLine || controller.signal.aborted) {
-            setOfflineState();
-            return;
-          }
-          const firstFailure = failedBatches[0].reason;
-          console.error(
-            `${failedBatches.length} periodic table data batches failed`,
-            firstFailure,
+        try {
+          result = JSON.parse(responseBody);
+        } catch {
+          throw new Error(
+            response.ok
+              ? "Periodic table API returned invalid JSON"
+              : `API request failed (${response.status})`,
           );
-          const availableElements = await readCachedElements().catch((error) => {
-            console.error("Failed to read cached data after a network error", error);
-            return [];
-          });
-          if (cancelled || currentRequestId !== requestId) return;
-          if (availableElements.length > 0) {
-            hasCachedElements = true;
-            setElements(availableElements);
-          }
-          if (availableElements.length === TOTAL_ELEMENTS) {
-            setRequestState("loaded");
-            setErrorMessage("Đang hiển thị dữ liệu đã lưu. Một số dữ liệu trực tuyến chưa được cập nhật.");
-          } else {
-            setRequestState("error");
-            setErrorMessage(
-              `Không tải được đầy đủ dữ liệu bảng tuần hoàn: ${firstFailure.message}`,
-            );
-          }
-          return;
+        }
+        if (!response.ok) {
+          throw new Error(result.error ?? `API request failed (${response.status})`);
+        }
+        if (
+          result.from !== from ||
+          result.to !== to ||
+          JSON.stringify(result.fields) !== JSON.stringify(REQUIRED_RESPONSE_FIELDS) ||
+          !Array.isArray(result.rows) ||
+          result.rows.length > TOTAL_ELEMENTS
+        ) {
+          throw new TypeError("Periodic table API returned an invalid result");
         }
 
+        const elementsByNumber = new Map();
+        result.rows.forEach((row) => {
+          if (
+            !row ||
+            typeof row !== "object" ||
+            Array.isArray(row) ||
+            !Number.isSafeInteger(row.number) ||
+            row.number < from ||
+            row.number > to ||
+            REQUIRED_RESPONSE_FIELDS.some((field) => !Object.hasOwn(row, field)) ||
+            elementsByNumber.has(row.number)
+          ) {
+            throw new TypeError("Periodic table API returned an invalid element row");
+          }
+          elementsByNumber.set(row.number, {
+            number: row.number,
+            name: row.name,
+            symbol: row.symbol,
+            category: row.category,
+            elementGroup: row.group,
+            period: row.period,
+          });
+        });
+        const refreshedElements = [...elementsByNumber.values()]
+          .sort((left, right) => left.number - right.number);
+        if (cancelled || currentRequestId !== requestId) return;
+        if (refreshedElements.length > 0) {
+          hasCachedElements = true;
+          setElements(refreshedElements);
+          try {
+            await saveCachedElements(refreshedElements);
+          } catch (error) {
+            console.error("Failed to save offline periodic table data", error);
+            setCacheError("Không thể lưu dữ liệu bảng tuần hoàn để dùng ngoại tuyến.");
+          }
+        }
+        if (cancelled || currentRequestId !== requestId) return;
         setRequestState("loaded");
         setErrorMessage("");
       } catch (error) {
@@ -310,6 +284,12 @@ function PeriodicTable() {
         }
         console.error("Failed to load periodic table", error);
         if (hasCachedElements) {
+          const availableElements = await readCachedElements().catch((cacheReadError) => {
+            console.error("Failed to read cached data after a network error", cacheReadError);
+            return [];
+          });
+          if (cancelled || currentRequestId !== requestId) return;
+          if (availableElements.length > 0) setElements(availableElements);
           setErrorMessage("Đang hiển thị dữ liệu đã lưu. Không thể kết nối để cập nhật.");
           setRequestState("loaded");
         } else {

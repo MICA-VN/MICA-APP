@@ -2,6 +2,17 @@ const DATABASE_NAME = "mica-chemistry-offline";
 const DATABASE_VERSION = 1;
 const ELEMENTS_STORE = "elements";
 
+function selectOfflineFields(element) {
+  return {
+    number: element.number,
+    name: element.name,
+    symbol: element.symbol,
+    category: element.category,
+    elementGroup: element.elementGroup,
+    period: element.period,
+  };
+}
+
 function openDatabase() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
@@ -26,7 +37,11 @@ export async function readCachedElements() {
       const request = transaction.objectStore(ELEMENTS_STORE).getAll();
 
       request.onsuccess = () => {
-        resolve(request.result.sort((left, right) => left.number - right.number));
+        resolve(
+          request.result
+            .map(selectOfflineFields)
+            .sort((left, right) => left.number - right.number),
+        );
       };
       request.onerror = () => reject(request.error);
       transaction.onabort = () => reject(transaction.error);
@@ -44,7 +59,7 @@ export async function saveCachedElements(elements) {
       const transaction = database.transaction(ELEMENTS_STORE, "readwrite");
       const store = transaction.objectStore(ELEMENTS_STORE);
 
-      elements.forEach((element) => store.put(element));
+      elements.forEach((element) => store.put(selectOfflineFields(element)));
       transaction.oncomplete = resolve;
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);

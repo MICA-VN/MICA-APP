@@ -2,9 +2,8 @@ import express from "express";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { createPeriodicTableResponse } from "../../cloudflare/api/contents/periodic-table.js";
 import { createSvgAssetResponse } from "../../cloudflare/api/assets/svg.js";
-import { loadPeriodicTableDatabase } from "./periodicTableDatabase.js";
+import { getCloudflareApiUrl } from "./api.js";
 import { loadSvgAsset } from "./svgAssets.js";
 
 const app = express();
@@ -27,15 +26,21 @@ app.get("/api/assets/svg", async (req, res) => {
 });
 
 app.post("/api/contents/periodic_table", async (req, res) => {
-  const request = new Request(`http://${req.get("host")}${req.originalUrl}`, {
-    method: req.method,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(req.body),
-  });
-  const response = await createPeriodicTableResponse(request, loadPeriodicTableDatabase);
-  res.status(response.status);
-  response.headers.forEach((value, name) => res.set(name, value));
-  res.send(await response.text());
+  try {
+    const response = await fetch(getCloudflareApiUrl("/api/contents/periodic_table"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    res.status(response.status);
+    response.headers.forEach((value, name) => res.set(name, value));
+    res.send(await response.text());
+  } catch (error) {
+    console.error("Failed to forward periodic table request to Cloudflare", error);
+    res.status(502).json({
+      error: "Cloudflare periodic table API is unavailable.",
+    });
+  }
 });
 
 app.use(express.static(distDirectory));

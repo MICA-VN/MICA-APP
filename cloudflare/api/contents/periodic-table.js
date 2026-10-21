@@ -1,17 +1,10 @@
-// Cloudflare Workers failed while instantiating sql.js' embedded WebAssembly build.
-// The ASM build is larger and slower, but is fully self-contained and is ample for
-// this small, read-only periodic-table database.
-import initSqlJs from "sql.js/dist/sql-asm.js";
+import {
+  normalizePeriodicTableFields,
+  readPeriodicTableRange,
+} from "./periodic-table-data.js";
 
 const MAX_REQUEST_BYTES = 16 * 1024;
-const MAX_QUERY_LENGTH = 8 * 1024;
 const MAX_RESULT_ROWS = 500;
-let sqlRuntime;
-
-function getSqlRuntime() {
-  sqlRuntime ??= initSqlJs();
-  return sqlRuntime;
-}
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -25,75 +18,12 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function isSingleSelect(sql) {
-  if (typeof sql !== "string" || sql.length > MAX_QUERY_LENGTH || !/^SELECT\b/i.test(sql.trim())) {
-    return false;
-  }
-
-  let quote = null;
-  let lineComment = false;
-  let blockComment = false;
-  let statementEnded = false;
-
-  for (let index = 0; index < sql.length; index += 1) {
-    const character = sql[index];
-    const next = sql[index + 1];
-
-    if (lineComment) {
-      if (character === "\n" || character === "\r") lineComment = false;
-      continue;
-    }
-    if (blockComment) {
-      if (character === "*" && next === "/") {
-        blockComment = false;
-        index += 1;
-      }
-      continue;
-    }
-    if (quote) {
-      if (character === quote) {
-        if (next === quote && quote !== "]") index += 1;
-        else quote = null;
-      }
-      continue;
-    }
-    if (character === "-" && next === "-") {
-      lineComment = true;
-      index += 1;
-      continue;
-    }
-    if (character === "/" && next === "*") {
-      blockComment = true;
-      index += 1;
-      continue;
-    }
-    if (character === "'" || character === '"' || character === "`") {
-      if (statementEnded) return false;
-      quote = character;
-      continue;
-    }
-    if (character === "[") {
-      if (statementEnded) return false;
-      quote = "]";
-      continue;
-    }
-    if (character === ";") {
-      if (statementEnded) return false;
-      statementEnded = true;
-      continue;
-    }
-    if (statementEnded && !/\s/.test(character)) return false;
-  }
-
-  return !quote && !blockComment;
-}
-
 async function readJsonBody(request) {
   const contentLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) return null;
 
   const reader = request.body?.getReader();
-  if (!reader) return null;
+  if (!reader) return undefined;
 
   const chunks = [];
   let totalBytes = 0;
@@ -110,10 +40,10 @@ async function readJsonBody(request) {
 
   const body = new Uint8Array(totalBytes);
   let offset = 0;
-  for (const chunk of chunks) {
+  chunks.forEach((chunk) => {
     body.set(chunk, offset);
     offset += chunk.byteLength;
-  }
+  });
 
   try {
     return JSON.parse(new TextDecoder().decode(body));
@@ -122,7 +52,7 @@ async function readJsonBody(request) {
   }
 }
 
-export async function createPeriodicTableResponse(request, loadDatabase) {
+export async function createPeriodicTableResponse(request, database) {
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -141,46 +71,52 @@ export async function createPeriodicTableResponse(request, loadDatabase) {
 
   const body = await readJsonBody(request);
   if (body === null) return jsonResponse({ error: "Request body is too large" }, 413);
-  if (body === undefined || !isSingleSelect(body?.sql)) {
-    return jsonResponse({ error: "Provide one read-only SELECT statement in the sql field" }, 400);
+  if (body === undefined || typeof body !== "object" || Array.isArray(body)) {
+    return jsonResponse({ error: "Request body must be a JSON object" }, 400);
   }
 
-  let databaseBytes;
+  const { fields, from, to } = body;
+  const requestedFields = normalizePeriodicTableFields(fields);
+  if (!requestedFields) {
+    return jsonResponse({ error: "A non-empty list of supported fields is required" }, 400);
+  }
+  if (!Number.isSafeInteger(from) || !Number.isSafeInteger(to)) {
+    return jsonResponse({
+      error: `from and to must define an atomic-number range of at most ${MAX_RESULT_ROWS} elements`,
+    }, 400);
+  }
+  if (
+    from < 1 ||
+    to < from ||
+    to - from + 1 > MAX_RESULT_ROWS
+  ) {
+    return jsonResponse({
+      error: `from and to must define an atomic-number range of at most ${MAX_RESULT_ROWS} elements`,
+    }, 400);
+  }
+  if (!database || typeof database.prepare !== "function") {
+    console.error("Cloudflare D1 binding DB is unavailable");
+    return jsonResponse({ error: "Periodic table database is unavailable" }, 503);
+  }
+
   try {
-    databaseBytes = await loadDatabase();
-  } catch (error) {
-    console.error("Failed to load periodic table database", error);
-    return jsonResponse({ error: "Failed to load periodic table database" }, 500);
-  }
-  if (databaseBytes === null) {
-    return jsonResponse({ error: "Periodic table database not found" }, 404);
-  }
-
-  let database;
-  try {
-    const SQL = await getSqlRuntime();
-    database = new SQL.Database(databaseBytes);
-    database.exec("PRAGMA query_only = ON");
-    const statement = database.prepare(body.sql);
-    const columns = statement.getColumnNames();
-    const rows = [];
-
-    while (statement.step()) {
-      if (rows.length === MAX_RESULT_ROWS) {
-        statement.free();
-        return jsonResponse({ error: `Query result exceeds ${MAX_RESULT_ROWS} rows` }, 400);
-      }
-      rows.push(statement.getAsObject());
+    const { fields: returnedFields, rows } = await readPeriodicTableRange(
+      database,
+      requestedFields,
+      from,
+      to,
+    );
+    if (rows.length > MAX_RESULT_ROWS) {
+      return jsonResponse({ error: `Query result exceeds ${MAX_RESULT_ROWS} rows` }, 400);
     }
-    statement.free();
-
-    return jsonResponse({ columns, rows });
+    return jsonResponse({
+      fields: returnedFields,
+      from,
+      to,
+      rows,
+    });
   } catch (error) {
-    console.error("Periodic table SQL query failed", error);
-    return jsonResponse({ error: "SQL query failed or is not read-only" }, 400);
-  } finally {
-    database?.close();
+    console.error("Periodic table D1 query failed", error);
+    return jsonResponse({ error: "Periodic table query failed" }, 500);
   }
 }
-
-export { isSingleSelect };
