@@ -12,6 +12,11 @@ giao diện, chế độ hiển thị standalone và icon. Worker phục vụ fi
 tránh máy chủ hosting sửa nội dung manifest. Icon manifest trỏ tới SVG logo
 trên Cloudflare Worker.
 
+Manifest được lưu trên origin Worker nhưng ứng dụng chạy tại
+`https://mica.page.gd`. Vì vậy `id`, `start_url` và `scope` phải ghi origin ứng
+dụng đầy đủ; dùng đường dẫn tương đối `/` sẽ bị giải quyết theo origin Worker,
+khiến trình duyệt bỏ qua `start_url`/`scope` vì khác origin với trang.
+
 `src/main.jsx` đăng ký `/sw.js` sau khi trang tải xong. Nếu đăng ký thất bại,
 lỗi được ghi vào console.
 
